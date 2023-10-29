@@ -18,6 +18,7 @@ class MenuScreen(Screen):
     criteria_labels: List[Label] = []
     criteria_inputs: List[TextInput] = []
     criteria_buttons: List[ToggleButton] = []
+    point_labels: List[Label] = []
     dropdown_buttons: List[Button] = []
 
     def __init__(self, **kwargs):
@@ -45,12 +46,22 @@ class MenuScreen(Screen):
         btn.bind(on_release=self.sort_points_dropdown.open)
         self.sort_points_dropdown.bind(on_select=lambda _, x: self.sort_points(x))
 
+        self.choose_algorithm_dropdown = DropDown()
+        btn = self.ids["choose_algorithm"]
+        btn.bind(on_release=self.choose_algorithm_dropdown.open)
+        self.choose_algorithm_dropdown.bind(on_select=lambda _, x: setattr(btn, 'text', x))
+
+        for text in ["Algorytm naiwny I", "Algorytm naiwny II", "Algorytm Kunga", "Algorytm Luccio & Preparaty"]:
+            sub_btn = Button(text=text, size_hint_y=None)
+            sub_btn.bind(on_release=lambda btn_: self.choose_algorithm_dropdown.select(btn_.text))
+            self.choose_algorithm_dropdown.add_widget(sub_btn)
+
     def add_criteria(self) -> None:
         box = self.ids["criteria_layout"]
         box.rows += 1
         criteria_counter = len(self.criteria_labels) + 1
 
-        lbl = Label(text=str(criteria_counter))
+        lbl = Label(text=str(criteria_counter), color="black")
         box.add_widget(lbl)
         self.criteria_labels.append(lbl)
 
@@ -62,11 +73,14 @@ class MenuScreen(Screen):
         box.add_widget(btn)
         self.criteria_buttons.append(btn)
 
+        box = self.ids["points_layout"]
+        box.cols += 1
+
+        lbl = Label(text=f"Kryterium {criteria_counter}", color="black")
+        box.add_widget(lbl)
+        self.point_labels.append(lbl)
+
         self.setup_criteria()
-
-
-
-        self.ids["11"].cols = criteria_counter
 
     def setup_criteria(self) -> None:
         i = len(self.criteria_inputs) - 1
@@ -90,6 +104,9 @@ class MenuScreen(Screen):
         self.criteria_buttons.pop(idx)
         self.remove_criteria_dropdown.remove_widget(self.dropdown_buttons[idx])
         self.sort_points_dropdown.remove_widget(self.dropdown_buttons[idx])
+        box = self.ids["points_layout"]
+        box.remove_widget(self.point_labels[idx])
+        self.point_labels.pop(idx)
         # box.rows -= 1
 
     def sort_points(self, idx: int) -> None:

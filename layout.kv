@@ -1,19 +1,35 @@
 <MenuScreen>:
     GridLayout:
+        canvas:
+            Color:
+                rgba: 1, 1, 1, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
         rows: 2
         cols: 2
         BoxLayout:
+            canvas:
+                Color:
+                    rgba: 0, 0, 0, 1
+                Line:
+                    rectangle: self.x, self.y, self.width, self.height
+                    width: 2
             orientation: "vertical"
+            padding: 10
             GridLayout:
                 id: criteria_layout
                 rows: 1
                 cols: 3
                 Label:
                     text: ""
+                    color: "black"
                 Label:
                     text: "Nazwa"
+                    color: "black"
                 Label:
                     text: "Kierunek"
+                    color: "black"
             GridLayout:
                 rows: 1
                 cols: 2
@@ -24,21 +40,19 @@
                     id: remove_criteria
                     text: "Usuń"
         GridLayout:
+            canvas:
+                Color:
+                    rgba: 0, 0, 0, 1
+                Line:
+                    rectangle: self.x, self.y, self.width, self.height
+                    width: 2
+            padding: 10
             rows: 2
             cols: 1
             GridLayout:
-                id: 11
+                id: points_layout
                 rows: 1
                 cols: 1
-                Label:
-                    id: 1
-                    text: "Press2"
-                Label:
-                    id: 1
-                    text: "Press2"
-                Label:
-                    id: 1
-                    text: "Press2"
             GridLayout:
                 rows: 1
                 cols: 2
@@ -50,7 +64,14 @@
                     id: 1
                     text: "Usuń"
         BoxLayout:
+            canvas:
+                Color:
+                    rgba: 0, 0, 0, 1
+                Line:
+                    rectangle: self.x, self.y, self.width, self.height
+                    width: 2
             orientation: "vertical"
+            padding: 10
             GridLayout:
                 rows: 4
                 cols: 1
@@ -59,20 +80,21 @@
                     cols: 3
                     Label:
                         text: "Rozkład"
+                        color: "black"
                     Button:
                         id: choose_distribution
                 GridLayout:
                     rows: 1
                     cols: 3
                     Label:
-                        id: 1
                         text: "Średnia"
+                        color: "black"
                     Label:
-                        id: 1
                         text: "Odchylenie"
+                        color: "black"
                     Label:
                         text: "Liczba obiektów"
-                        id: 1
+                        color: "black"
                 GridLayout:
                     rows: 1
                     cols: 3
@@ -92,6 +114,33 @@
                         id: sort_points
                         text: "Sortuj"
         BoxLayout:
-            Button:
-                id: 3
-                text: "Press4"
+            canvas:
+                Color:
+                    rgba: 0, 0, 0, 1
+                Line:
+                    rectangle: self.x, self.y, self.width, self.height
+                    width: 2
+            orientation: "vertical"
+            padding: 10
+            GridLayout:
+                rows: 2
+                cols: 1
+                GridLayout:
+                    rows: 1
+                    cols: 2
+                    Label:
+                        text: "Algorytm"
+                        color: "black"
+                    Button:
+                        id: choose_algorithm
+                GridLayout:
+                    rows: 1
+                    cols: 4
+                    Button:
+                        text: "Renderuj animację"
+                    Button:
+                        text: "Przerwij"
+                    Button:
+                        text: "Benchmark"
+                    Button:
+                        text: "Rozwiąż"
