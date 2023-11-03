@@ -1,4 +1,6 @@
 from typing import List
+from plot_results import plot_results
+from data_generation import generate_points_gamma
 
 # Algorithm 1
 
@@ -161,13 +163,20 @@ def algorithm_3(X):
 
 if __name__ == "__main__":
     X = [(5,5), (3,6), (4,4), (5,3), (3,3), (1,8), (3,4), (4,5), (3,10), (6,6), (4,1), (3,5)]
-    P1, dominated1 = algorithm_1(X)
+
+    input = generate_points_gamma(1, 4, 20, 4)
+
+    # potrzebna konwersja, ponieważ wszystkie algorytmy działają na liście krotek jako zbiór punktów początkowych
+    input = list(map(tuple, input))
+
+
+    P1, dominated1 = algorithm_1(input)
     print("Algorytm 1: \n {}".format(P1))
     P2 = algorithm_2(X)
     print("Algorytm 2: \n {}".format(P2))
     P3 = algorithm_3(X)
     print("Algorytm 3: \n {}".format(P3))
 
-
+    plot_results(input, dominated1, P1)
 
 
