@@ -19,9 +19,7 @@ def generate_points_gamma(shape, scale, number_of_points, number_of_parameters):
 def generate_points_uniform(low, high, number_of_points, number_of_parameters):
     return np.random.uniform(low, high, (number_of_points, number_of_parameters))
 
-
 # def write_to_file(all_points, non_dominated_points, parameters_names, parameter_function):
-    
 
 
 if __name__ == '__main__':

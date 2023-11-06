@@ -1,10 +1,11 @@
 from typing import List
 from plot_results import plot_results
 from data_generation import generate_points_gamma
+import math
 
 # Algorithm 1
 
-def algorithm_1(X):
+def algorithm_1(X, criteria):
     X_list = X.copy()
     not_dominated = list()
     not_comparable = list()
@@ -50,12 +51,12 @@ def get_minimum(x1, x2):
     else:
         return None
 
-
-def algorithm_2(X):
+def algorithm_2(X, criteria):
     X_list = X.copy()
     P = []
-    deleted = list()
+    dominated_points = []
     i = 0
+
     while i < len(X_list):
         was_removed = False
         Y = X_list[i]
@@ -63,120 +64,116 @@ def algorithm_2(X):
         while j < len(X_list):
             min_val = get_minimum(Y, X_list[j])
             if min_val == Y:
-                if X_list[j] not in deleted: deleted.append(X_list[j])
+                dominated_points.append(X_list[j])
                 X_list.remove(X_list[j])
                 was_removed = True
             elif min_val == X_list[j]:
                 Y_temp = Y
                 Y = X_list[j]
+                dominated_points.append(Y_temp)
                 X_list.remove(Y_temp)
                 was_removed = True
             else:
                 j += 1
         P.append(Y)
         k = 0
+        X_list.remove(Y)
         while k < len(X_list):
             min_val = get_minimum(Y, X_list[k])
             if min_val == Y:
+                dominated_points.append(X_list[k])
                 X_list.remove(X_list[k])
                 was_removed = True
             else:
                 k += 1
         if len(X_list) == 1:
             P.append(X_list[0])
-            return P
+            return P, dominated_points
         if not was_removed:
             i += 1
-    return P
+    return P, dominated_points
 
 
 # Algorithm 3
+def algorithm_3(X, criteria):
+    X_list = X.copy()
+    dominated_points: List[List[float]] = []
+    not_dominated_points: List[List[float]] = []
+    k = len(X_list[0])
+    n = len(X_list)
+    ideal_point: List[float] = []
 
-# class Point:
-#   def __init__(self, coords: List[float]) -> None:
-#     self.coords = coords
-#     self.n = len(coords)
+    for i in range(k):
+        if criteria[i]:
+            ideal_point.append(max([x[i] for x in X_list]))
 
-#   def __le__(self, other: "Point") -> bool:
-#     for i in range(self.n):
-#       if self.coords[i] > other.coords[i]:
-#         return False
+        else:
+            ideal_point.append(min([x[i] for x in X_list]))
 
-#     return True
+    points_info: List[List[float]] = []
 
-#   def __str__(self) -> str:
-#     return "(" + ", ".join([str(x) for x in self.coords]) + ")"
+    for j in range(n):
+        d = sum(abs(ideal_point[i] - X[j][i]) for i in range(k))
+        points_info.append([d, j])
 
-#   def print(self) -> str:
-#     print(self)
+    sorted_points_info = sorted(points_info, key=lambda v: v[0])
+    print(sorted_points_info)
+    J = [elem[1] for elem in sorted_points_info]
+    M, m = n, 0
 
-#   def dist(self, other: "Point") -> float:
-#     d: float = 0
+    while m <= M:
+        X_ref = X_list[J[m]]
 
-#     for i in range(self.n):
-#       d += (self.coords[i] - other.coords[i])**2
+        if X_ref is None:
+            m += 1
+            continue
 
-#     return d
+        h = len([x for x in X_list if x is not None]) == 1
 
-def algorithm_3(X):
-  X_list = X.copy()
-  P = list()
-  k = len(X_list[0])
-  ideal_point_coords: List[float] = []
+        for i in range(n):
+            if X_list[i] is None or J[m] == i:
+                continue
 
-  for i in range(k):
-    ideal_point_coords.append(min([x[i] for x in X_list]))
+            for j in range(k):
+                if criteria[j] and X_ref[j] < X_list[i][j]:
+                    break
 
-  ideal_point = ideal_point_coords
+                elif not criteria[j] and X_ref[j] > X_list[i][j]:
+                    break
 
-  n: int = len(X_list)
-  sorted_points: List[float] = []
+            else:
+                dominated_points.append(X_list[i])
+                X_list[i] = None
+                h = True
 
-  for j in range(n):
-    d: float = sum((ideal_point[i] - X[j][i]) ** 2 for i in range(k))
-    sorted_points.append((d, j))
+        if h:
+            not_dominated_points.append(X_ref)
 
-  sorted_points = sorted(sorted_points, key=lambda v: v[0])
-  D = [elem[0] for elem in sorted_points]
-  J = [elem[1] for elem in sorted_points]
-  M: int = n
-  m: int = 0
+        else:
+            dominated_points.append(X_ref)
 
-  while m <= M:
-    if X_list[J[m]] is None:
-      m += 1
-      continue
+        X_list[J[m]] = None
+        M, m = M - 1, m + 1
 
-    for i in range(n):
-      if X_list[i] is None or J[m] == i:
-        continue
-
-      if all(X_list[J[m]][j] <= X_list[i][j] for j in range(k)):
-        X_list[i] = None
-
-    P.append(X_list[J[m]])
-    X_list[J[m]] = None
-    M = M - 1
-    m = m + 1
-
-  return P
+    return not_dominated_points, dominated_points
 
 if __name__ == "__main__":
-    X = [(5,5), (3,6), (4,4), (5,3), (3,3), (1,8), (3,4), (4,5), (3,10), (6,6), (4,1), (3,5)]
-
+    X = [(5, 5), (3, 6), (4, 4), (5, 3), (3, 3), (1, 8), (3, 4), (4, 5), (3, 10), (6, 6), (4, 1), (3, 5)]
+    X = [(3, 4, -4, 5), (1, -4, -2, 1), (5, 5, -4, 5), (5, 0, 3, -4), (-1, 5, 3, 5), (2, -5, 4, 5)]
     input = generate_points_gamma(1, 4, 20, 4)
 
     # potrzebna konwersja, ponieważ wszystkie algorytmy działają na liście krotek jako zbiór punktów początkowych
     input = list(map(tuple, input))
+    # input = X
+    criteria = [False, True, True, False]
 
+    P1, dominated1 = algorithm_1(input, criteria)
+    P2, dominated2 = algorithm_2(input, criteria)
+    P3, dominated3 = algorithm_3(input, criteria)
+    print(f"Algorytm 1:\n\t{len(P1)}\t{P1}\n\t{len(dominated1)}\t{dominated1}")
+    print(f"Algorytm 2:\n\t{len(P2)}\t{P2}\n\t{len(dominated2)}\t{dominated2}")
+    print(f"Algorytm 3:\n\t{len(P3)}\t{P3}\n\t{len(dominated3)}\t{dominated3}")
 
-    P1, dominated1 = algorithm_1(input)
-    print("Algorytm 1: \n {}".format(P1))
-    P2 = algorithm_2(X)
-    print("Algorytm 2: \n {}".format(P2))
-    P3 = algorithm_3(X)
-    print("Algorytm 3: \n {}".format(P3))
-
-    plot_results(input, dominated1, P1)
+    # plot_results(input, dominated1, P1)
 
 
