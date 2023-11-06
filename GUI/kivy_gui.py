@@ -187,6 +187,8 @@ class MenuScreen(Screen):
             high = par2
             points = generate_points_uniform(low, high, number_of_points, number_of_parameters)
 
+        points = list(map(tuple, points))
+
         self.points.extend(points)
         box = self.ids["points_layout"]
 

@@ -15,35 +15,31 @@ if __name__ == '__main__':
     # D = np.random.normal(mean, std, (number_of_points, number_of_parameters))
 
     D = []
+    N = 1000
 
-    for _ in range(100):
-        # radius = np.random.rand()
-        radius = 1
-        theta = np.random.rand() * 2 * np.pi
-        x = radius * np.cos(theta)
-        y = radius * np.sin(theta)
-        D.append((x, y))
+    for _ in range(N):
+        r, theta = 1, np.random.rand() * 2 * np.pi
+        D.append((r * np.cos(theta), r * np.sin(theta)))
 
     D = np.array(D)
 
     x = np.array([v[0] for v in D])
     y = np.array([v[1] for v in D])
-    ideal_point = [min(f1(x, y)), min(f2(x, y))]
+    F1 = f1(x, y)
+    F2 = f2(x, y)
+    ideal_x, ideal_y = min(F1), min(F2)
 
-    plt.figure()
-    plt.scatter(x, y)
-    plt.xlabel("x"), plt.ylabel("y")
+    S = [(F1[i] - ideal_x)**2 + (F2[i] - ideal_y)**2 for i in range(N)]
+    idx = S.index(min(S))
+
+    fig, ax = plt.subplots(nrows=1, ncols=2)
+    ax[0].scatter(x, y)
+    ax[0].scatter([x[idx]], [y[idx]])
+    ax[0].set_xlabel("x"), ax[0].set_ylabel("y")
+
+    ax[1].scatter(F1, F2)
+    ax[1].scatter([ideal_x], [ideal_y])
+    ax[1].scatter([F1[idx]], [F2[idx]])
+    ax[1].set_xlabel("F1"), ax[1].set_ylabel("F2")
     plt.show()
-
-    plt.figure()
-    plt.scatter(f1(x, y), f2(x, y))
-    plt.xlabel("F1"), plt.ylabel("F2")
-    plt.show()
-
-
-    # plt.scatter(f1(x, y), f2(x, y))
-    # plt.xlabel("F1"), plt.ylabel("F2")
-    # plt.show()
-    print(D)
-    print(ideal_point)
 
