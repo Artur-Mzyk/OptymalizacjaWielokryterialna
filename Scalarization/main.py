@@ -29,17 +29,39 @@ if __name__ == '__main__':
     F2 = f2(x, y)
     ideal_x, ideal_y = min(F1), min(F2)
 
-    S = [(F1[i] - ideal_x)**2 + (F2[i] - ideal_y)**2 for i in range(N)]
-    idx = S.index(min(S))
+    # skalaryzacja przez funkcję liniową
+    lambda_1 = 0.4
+    lambda_2 = 0.6
+    S1 = [lambda_1*F1[i] + lambda_2*F2[i] for i in range (N)]
+    idx1 = S1.index(min(S1))
 
+    # skalaryzacja przez minimalizację odległości
+    S3 = [(F1[i] - ideal_x)**2 + (F2[i] - ideal_y)**2 for i in range(N)]
+    idx3 = S3.index(min(S3))
+
+    # wykresy dla skalaryzacji nr.1
     fig, ax = plt.subplots(nrows=1, ncols=2)
+    fig.suptitle('Skalaryzacja przez funkcję liniową', fontsize=16)
     ax[0].scatter(x, y)
-    ax[0].scatter([x[idx]], [y[idx]])
+    ax[0].scatter([x[idx1]], [y[idx1]])
     ax[0].set_xlabel("x"), ax[0].set_ylabel("y")
 
     ax[1].scatter(F1, F2)
     ax[1].scatter([ideal_x], [ideal_y])
-    ax[1].scatter([F1[idx]], [F2[idx]])
+    ax[1].scatter([F1[idx1]], [F2[idx1]])
+    ax[1].set_xlabel("F1"), ax[1].set_ylabel("F2")
+    #plt.show()
+
+    # wykresy dla skalaryzacji nr.3
+    fig, ax = plt.subplots(nrows=1, ncols=2)
+    fig.suptitle('Skalaryzacja przez minimalizację odległości', fontsize=16)
+    ax[0].scatter(x, y)
+    ax[0].scatter([x[idx3]], [y[idx3]])
+    ax[0].set_xlabel("x"), ax[0].set_ylabel("y")
+
+    ax[1].scatter(F1, F2)
+    ax[1].scatter([ideal_x], [ideal_y])
+    ax[1].scatter([F1[idx3]], [F2[idx3]])
     ax[1].set_xlabel("F1"), ax[1].set_ylabel("F2")
     plt.show()
 
