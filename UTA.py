@@ -46,7 +46,33 @@ def UTASTAR(A, minmax, criteria=[], weights=[]):
         criteria = [i + 1 for i in range(len(minmax))]
 
     min_g, max_g = find_minmax_criteria(A)
+    print("Min_g: {}\nMax_g: {}".format(min_g, max_g))
+    
     U = calc_u(A, min_g, max_g, minmax, criteria, weights)
+    print("\nCząstkowe użyteczności: \n{}".format(U))
+    
     util = calc_utilities_for_a(U)
+    print("\nZsumowane użyteczności: \n{}\n".format(util))
+
     rank = sort_a(util)
     return rank
+
+
+if __name__ == "__main__":
+
+    A = np.array([
+        [12, 0.01024, 24.0646],
+        [1, 0.00026, 62.1609],
+        [4, 0.02004, 24.1212],
+        [1, -0.27064, 23.2374],
+        [2, 0.00476, 0.0327],
+        [1, 0.11461, 33.8748]
+        ])
+    minmax = [True, False, True]
+    criteria = ["Liquidity", "Beta", "Return"]
+
+    ranking = UTASTAR(A, minmax, criteria)
+    print(ranking)
+
+
+    
