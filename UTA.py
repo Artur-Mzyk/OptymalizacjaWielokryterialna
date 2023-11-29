@@ -73,6 +73,3 @@ if __name__ == "__main__":
 
     ranking = UTASTAR(A, minmax, criteria)
     print(ranking)
-
-
-    
