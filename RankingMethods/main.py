@@ -5,8 +5,9 @@ import matplotlib.pyplot as plt
 from data_generation import *
 from write_to_file import *
 from plot_results import *
-from UTA import *
 from topsis import *
+from UTA import *
+from RSM import *
 
 from kivy.app import App
 from kivy.lang import Builder
@@ -46,6 +47,9 @@ class MenuScreen(Screen):
         self.criteria_buttons: List[ToggleButton] = []
         self.criteria_buttons_removal: List[Button] = []
         self.criteria_checkboxes: List[CheckBox] = []
+        self.criteria_references1: List[TextInput] = []
+        self.criteria_references2: List[TextInput] = []
+        self.criteria_weights: List[TextInput] = []
         self.distribution_checkboxes: List[CheckBox] = []
         self.algorithm_checkboxes: List[CheckBox] = []
         self.point_labels: List[Label] = []
@@ -95,6 +99,18 @@ class MenuScreen(Screen):
         box.add_widget(checkbox)
         self.criteria_checkboxes.append(checkbox)
 
+        inp = TextInput()
+        box.add_widget(inp)
+        self.criteria_references1.append(inp)
+
+        inp = TextInput()
+        box.add_widget(inp)
+        self.criteria_references2.append(inp)
+
+        inp = TextInput()
+        box.add_widget(inp)
+        self.criteria_weights.append(inp)
+
         box = self.ids["points_header_layout"]
         box.cols += 1
 
@@ -117,6 +133,12 @@ class MenuScreen(Screen):
         self.criteria_buttons_removal.pop(idx)
         box.remove_widget(self.criteria_checkboxes[idx])
         self.criteria_checkboxes.pop(idx)
+        box.remove_widget(self.criteria_references1[idx])
+        self.criteria_references1.pop(idx)
+        box.remove_widget(self.criteria_references2[idx])
+        self.criteria_references2.pop(idx)
+        box.remove_widget(self.criteria_weights[idx])
+        self.criteria_weights.pop(idx)
 
         box = self.ids["points_header_layout"]
         box.remove_widget(self.point_labels[idx])
@@ -221,8 +243,9 @@ class MenuScreen(Screen):
         t1 = time.time()
 
         if algorithm == 0:
-            reference = [[0, 0], [7, 6]]
-            weights = [0.6, 0.4]
+            reference = [[float(ref1.text), float(ref2.text)] for ref1, ref2 in zip(self.criteria_references1, self.criteria_references2)]
+            weights = [float(w.text) for w in self.criteria_weights]
+            print(reference, weights)
             rank = topsis(self.points, reference, weights)
 
         elif algorithm == 1:

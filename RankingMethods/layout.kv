@@ -22,7 +22,7 @@
             GridLayout:
                 id: criteria_layout
                 rows: 1
-                cols: 5
+                cols: 8
                 Button:
                     text: "Dodaj"
                     on_press: root.add_criteria()
@@ -30,17 +30,29 @@
                 Label:
                     text: "Nazwa"
                     color: "black"
-                    size_hint_x: criteria_layout.width * 0.4
+                    size_hint_x: criteria_layout.width * 0.3
                 Label:
                     text: "Kierunek"
                     color: "black"
-                    size_hint_x: criteria_layout.width * 0.2
+                    size_hint_x: criteria_layout.width * 0.1
                 Label:
                     text: ""
                     color: "black"
-                    size_hint_x: criteria_layout.width * 0.2
+                    size_hint_x: criteria_layout.width * 0.1
                 Label:
                     text: ""
+                    color: "black"
+                    size_hint_x: criteria_layout.width * 0.1
+                Label:
+                    text: "Ref1"
+                    color: "black"
+                    size_hint_x: criteria_layout.width * 0.1
+                Label:
+                    text: "Ref2"
+                    color: "black"
+                    size_hint_x: criteria_layout.width * 0.1
+                Label:
+                    text: "Waga"
                     color: "black"
                     size_hint_x: criteria_layout.width * 0.1
         GridLayout:
