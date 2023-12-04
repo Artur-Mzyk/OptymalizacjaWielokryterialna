@@ -4,247 +4,179 @@ import pandas as pd
 from copy import deepcopy
 
 
-# Wyznaczenie decyzji między zbiorem A1 i A2 do stworzenia rankingu (jeżeli pomiędzy jest zbiór pusty to rozważamy zbiór A2)
-def wyznaczanie_zbioru_mozliwych_decyzji(A1, A2, D):
-    liczba_kryteriów = D.shape[1] - 1
-    liczba_decyzji = D.shape[0]
-
-    liczba_alternatyw_A1 = A1.shape[0]
-    liczba_alternatyw_A2 = A2.shape[0]
-
+def get_rank(A1, A2, D):
+    n_alternatives, n_criteria = D.shape
     M1 = []
-    for i in range(liczba_decyzji):
-        warunek = False
-        for a in range(liczba_alternatyw_A1):
-            for j in range(1, liczba_kryteriów + 1):
-                if D[i,j] >= A1[a,j]:
-                    warunek = True
-                else:
-                    warunek = False
-                    break
-        if warunek:
-            wpisuj = True
-            for k in range(liczba_alternatyw_A1):
-                if np.equal(A1[k,:], D[i,:]).all():
-                    wpisuj = False
-                    break
-            if wpisuj:
-                M1.append(D[i,:])
-    M1 = np.array(M1)
-    liczba_alt_M1 = M1.shape[0]
-
     M2 = []
-    for i in range(liczba_alt_M1):
-        warunek = False
-        for a in range(liczba_alternatyw_A2):
-            for j in range(1, liczba_kryteriów + 1):
-                if M1[i,j] <= A2[a,j]:
-                    warunek = True
+
+    for i in range(n_alternatives):
+        condition = False
+
+        for k in range(A1.shape[0]):
+            for j in range(n_criteria):
+                if D[i, j] >= A1[k, j]:
+                    condition = True
+
                 else:
-                    warunek = False
+                    condition = False
                     break
-        if warunek:
-            wpisuj = True
-            for k in range(liczba_alternatyw_A2):
-                if np.equal(A2[k,:], M1[i,:]).all():
-                    wpisuj = False
+
+        if condition:
+            for k in range(A1.shape[0]):
+                if np.equal(A1[k, :], D[i, :]).all():
                     break
-            if wpisuj:
-                M2.append(M1[i,:])
-
-    if M2 == []:
-        M2 = A2
-    else:
-        M2 = np.array(M2)
-    return M2
-
-
-
-
-def reverse_max_criteria(D, directions):
-    n_criteria = len(directions)
-
-    for i in range(n_criteria):
-        if directions[i] == 'max':
-            D[:, i + 1] = -D[:, i + 1]
-
-    return D
-
-
-def punkty_niezdominowe_nieporownywalne(D):
-    n_alternatives = D.shape[0]
-    n_criteria = D.shape[1] - 1
-
-    incomparable_points = D[0, :].reshape((1, n_criteria + 1))
-    non_dominated_point = D[0, :]
-
-    for i in range(1, n_alternatives):
-        n_greater = 0
-        n_equal = 0
-
-        for j in range(1, n_criteria + 1):
-            if non_dominated_point[j] < D[i, j]:
-                n_greater += 1
-
-            elif non_dominated_point[j] == D[i, j]:
-                n_equal += 1
-
-        r = n_criteria - n_equal
-
-        if  r == 0 or 0 < n_greater < r:
-            incomparable_points = np.concatenate((incomparable_points, D[i, :].reshape((1, n_criteria + 1))), axis=0)
-
-        elif n_greater == 0:
-            incomparable_points_old = incomparable_points
-            non_dominated_point = D[i, :]
-
-            # Porównanie czy nowy punkt dominuje nad starymi w macierzy nieporównywalne:
-            if incomparable_points_old.shape[0] != 1:
-                incomparable_points_old = np.concatenate((non_dominated_point.reshape((1,n_criteria + 1)), incomparable_points_old), axis=0)
-                incomparable_points = punkty_niezdominowe_nieporownywalne(incomparable_points_old)
 
             else:
-                incomparable_points = non_dominated_point.reshape((1, n_criteria + 1))
+                M1.append(D[i, :])
 
-    return incomparable_points
+    M1 = np.array(M1)
 
+    for i in range(M1.shape[0]):
+        condition = False
 
-def best_points(D, direction):
-    n_criteria = D.shape[1] - 1
+        for k in range(A2.shape[0]):
+            for j in range(n_criteria):
+                if M1[i, j] <= A2[k, j]:
+                    condition = True
 
-    if direction == 'max':
-        D[:, 1:n_criteria + 1] = -D[:, 1:n_criteria + 1]
+                else:
+                    condition = False
+                    break
 
-    incomparable_points_part = punkty_niezdominowe_nieporownywalne(D)
-    non_dominated_point = incomparable_points_part[0, :]
-    incomparable_points = non_dominated_point.reshape((1, n_criteria + 1))
+        if condition:
+            for k in range(A2.shape[0]):
+                if np.equal(A2[k, :], M1[i, :]).all():
+                    break
 
-    while incomparable_points_part.shape[0] > 2:
-        incomparable_points_part = punkty_niezdominowe_nieporownywalne(incomparable_points_part[1:, :])
-        non_dominated_point = incomparable_points_part[0, :]
-        incomparable_points = np.concatenate((non_dominated_point.reshape((1, n_criteria + 1)), incomparable_points), axis=0)
+            else:
+                M2.append(M1[i, :])
 
-    if incomparable_points_part.shape[0] == 2:
-        incomparable_points = np.concatenate((incomparable_points_part[1, :].reshape((1, n_criteria + 1)), incomparable_points), axis=0)
-
-    A0 = incomparable_points
-    idealny = np.array([[A0[:, i].min() for i in range(1, A0.shape[1])]])
-
-    if direction == 'max':
-        A0[:, 1:A0.shape[1]] = -A0[:, 1:A0.shape[1]]
-        idealny = -idealny
-
-    if direction == 'max':
-        D[:, 1:D.shape[1]] = -D[:, 1:D.shape[1]]
-
-    return A0, idealny
+    return np.array(M2) if M2 else A1
 
 
-def nieporownywalne_dla_preferencji(pref, D):
-    n_alternatives = D.shape[0]
-    n_criteria = D.shape[1] - 1
+def get_incomparable_for_preference(D, pref):
+    n_alternatives, n_criteria = D.shape
     incomparable_points = np.array([])
 
-    for i in range(1, n_alternatives):
-        n_greater = 0
-        n_equal = 0
+    for i in range(n_alternatives):
+        n_greater = sum([1 for j in range(n_criteria) if pref[j] < D[i, j]])
+        n_unequal = sum([1 for j in range(n_criteria) if pref[j] != D[i, j]])
 
-        for j in range(1, n_criteria + 1):
-            if pref[j - 1] < D[i, j]:
-                n_greater += 1
-
-            elif pref[j - 1] == D[i, j]:
-                n_equal += 1
-
-        r = n_criteria - n_equal
-
-        if r == 0 or 0 < n_greater < r:
+        if n_unequal == 0 or 0 < n_greater < n_unequal:
             if incomparable_points.shape[0] == 0:
-                incomparable_points = D[i, :].reshape((1, n_criteria + 1))
+                incomparable_points = D[i, :].reshape((1, n_criteria))
 
-            incomparable_points = np.concatenate((incomparable_points, D[i, :].reshape((1, n_criteria + 1))), axis=0)
+            incomparable_points = np.concatenate((incomparable_points, D[i, :].reshape((1, n_criteria))), axis=0)
 
     return incomparable_points
 
 
 def internal_contradiction(A):
-    n_criteria = A.shape[1] - 1
-    incomparable_points_part = punkty_niezdominowe_nieporownywalne(A)
+    n_criteria = A.shape[1]
+    incomparable_points_part = get_incomparable_points(A)
     non_dominated_point = incomparable_points_part[0, :]
-    incomparable_points = non_dominated_point.reshape((1, n_criteria + 1))
+    incomparable_points = non_dominated_point.reshape((1, n_criteria))
 
     while incomparable_points_part.shape[0] > 2:
-        incomparable_points_part = punkty_niezdominowe_nieporownywalne(incomparable_points_part[1:, :])
+        incomparable_points_part = get_incomparable_points(incomparable_points_part[1:, :])
         non_dominated_point = incomparable_points_part[0,:]
-        incomparable_points = np.concatenate((non_dominated_point.reshape((1, n_criteria + 1)), incomparable_points), axis=0)
+        incomparable_points = np.concatenate((non_dominated_point.reshape((1, n_criteria)), incomparable_points), axis=0)
 
     if incomparable_points_part.shape[0] == 2:
-        incomparable_points = np.concatenate((incomparable_points_part[1, :].reshape((1, n_criteria + 1)), incomparable_points), axis=0)
+        incomparable_points = np.concatenate((incomparable_points_part[1, :].reshape((1, n_criteria)), incomparable_points), axis=0)
 
     return incomparable_points
 
 
 def external_contradiction(A, B):
-    n_criteria = A.shape[1] - 1
-    n_alternatives_A = A.shape[0]
-    n_alternatives_B = B.shape[0]
-    new_alternatives_A = []
+    n_criteria = A.shape[1]
+    new_A = []
 
-    for i in range(n_alternatives_A):
+    for i in range(A.shape[0]):
         condition = False
-        comparison = 0
 
-        for j in range(n_alternatives_B):
-            for k in range(1, n_criteria + 1):
-                if A[i, k] < B[j, k]:
+        for k in range(B.shape[0]):
+            for j in range(1, n_criteria):
+                if A[i, j] >= B[k, j]:
+                    condition = True
+
+                else:
                     condition = False
                     break
 
-                else:
-                    condition = True
-
             if condition:
-                comparison = B[j, :]
+                comparison = B[k, :]
                 break
 
         if condition:
-            if np.equal(A[i, :], comparison).all():
-                pass
+            if not np.equal(A[i, :], comparison).all():
+                new_A.append(A[i, :])
+
+    return np.array(new_A)
+
+
+def reverse_criteria(D, directions):
+    for i, direction in enumerate(directions):
+        if direction == "max":
+            D[:, i] = -D[:, i]
+
+    return D
+
+
+def get_incomparable_points(D):
+    n_alternatives, n_criteria = D.shape
+    incomparable_points = D[0,:].reshape((1, n_criteria))
+    non_dominated_point = D[0,:]
+
+    for i in range(1, n_alternatives):
+        n_greater = sum([1 for j in range(n_criteria) if non_dominated_point[j] < D[i, j]])
+        n_unequal = sum([1 for j in range(n_criteria) if non_dominated_point[j] != D[i, j]])
+
+        if n_unequal == 0 or 0 < n_greater < n_unequal:
+            incomparable_points = np.concatenate((incomparable_points, D[i, :].reshape((1, n_criteria))),axis=0)
+
+        elif n_greater == 0:
+            incomparable_points_old = incomparable_points
+            non_dominated_point = D[i, :]
+
+            if incomparable_points_old.shape[0] == 1:
+                incomparable_points = non_dominated_point.reshape((1, n_criteria))
 
             else:
-                new_alternatives_A.append(A[i, :])
+                incomparable_points_old = np.concatenate((non_dominated_point.reshape((1, n_criteria)), incomparable_points_old), axis=0)
+                incomparable_points = get_incomparable_points(incomparable_points_old)
 
-    return np.array(new_alternatives_A)
-
-
-def get_ideal_point(A, flag):
-    if flag == 'max':
-        A[:, 1:A.shape[1]] = -A[:, 1:A.shape[1]]
-
-    ideal_point = np.array([[A[:, i].min() for i in range(1, A.shape[1])]])
-
-    if flag == 'max':
-        A[:, 1: A.shape[1]] = -A[:, 1: A.shape[1]]
-        ideal_point = -ideal_point
-
-    return ideal_point
+    return incomparable_points
 
 
-def determine_sets(pref, pref_qwo):
-    """
-    :param pref: Preferencje do wyznaczenia zbioru A1 (nieosiągalnego dla klienta)
-    :param pref_qwo: Preferencje minimalne do wyznaczenia zbioru A2 (klient chce coś więcej niż to)
-    """
+def get_best_points(D, direction, n_criteria):
+    if direction == 'max':
+        D = -D
 
-    criteria = ['Punkt', 'Marża [%]', 'Wkład własny [%]', 'Opinie[pkt. Max. 5]']
-    directions = ['min', 'min', 'max']
-    D = pd.read_excel("dane.xlsx", sheet_name='Arkusz3', header=0)[criteria].values
-    D_min = reverse_max_criteria(D, directions)
+    incomparable_points = get_incomparable_points(D)
+    non_dominated_point = incomparable_points[0, :]
+    incomparable_points_part = incomparable_points
+    incomparable_points = non_dominated_point.reshape((1, n_criteria))
 
-    A0, vec_ideal = best_points(D_min, 'min')
-    A3, vec_anty_ideal = best_points(D_min, 'max')
+    while incomparable_points_part.shape[0] > 2:
+        incomparable_points_part = get_incomparable_points(incomparable_points_part[1:, :])
+        non_dominated_point = incomparable_points_part[0, :]
+        incomparable_points = np.concatenate((non_dominated_point.reshape((1, n_criteria)), incomparable_points), axis=0)
 
-    A1 = nieporownywalne_dla_preferencji(pref, D_min)
+    if incomparable_points_part.shape[0] == 2:
+        incomparable_points = np.concatenate((incomparable_points_part[1,:].reshape((1, n_criteria)), incomparable_points), axis=0)
+
+    return -incomparable_points if direction == "max" else incomparable_points
+
+
+def determine_sets(pref, pref_qwo, D, directions):
+    D = reverse_criteria(D, directions)
+    n_criteria = D.shape[1]
+
+    A0 = get_best_points(D, 'min', n_criteria)
+    A3 = get_best_points(D, 'max', n_criteria)
+
+    A1 = get_incomparable_for_preference(D, pref)
 
     if A1.shape[0] == 0:
         A1 = deepcopy(A0)
@@ -255,9 +187,7 @@ def determine_sets(pref, pref_qwo):
     if A1.shape[0] == 0:
         A1 = deepcopy(A0)
 
-    ideal_A1 = get_ideal_point(A1, 'min')
-
-    A2 = nieporownywalne_dla_preferencji(pref_qwo, D_min)
+    A2 = get_incomparable_for_preference(D, pref_qwo)
 
     if A2.shape[0] == 0:
         A2 = deepcopy(A3)
@@ -268,35 +198,21 @@ def determine_sets(pref, pref_qwo):
     if A2.shape[0] == 0:
         A2 = deepcopy(A3)
 
-    ideal_A2 = get_ideal_point(A2, 'max')
-
-    M = wyznaczanie_zbioru_mozliwych_decyzji(A1, A2, D_min)
+    M = get_rank(A1, A2, D)
 
     if M.shape[0] == 0:
-        M = deepcopy(A2)
-        A2 = deepcopy(A3)
+        M = deepcopy(A1)
 
-    # if 'max' in directions:
-    #     M = reverse_max_criteria(M, directions)
-    #     A0 = reverse_max_criteria(A0, directions)
-    #     vec_ideal = reverse_max_criteria(vec_ideal, directions)
-    #     vec_anty_ideal = reverse_max_criteria(vec_anty_ideal, directions)
-    #     A3 = reverse_max_criteria(A3, directions)
-    #     A2 = reverse_max_criteria(A2, directions)
-    #     A1 = reverse_max_criteria(A1, directions)
-    #     ideal_A1 = reverse_max_criteria(ideal_A1, directions)
-    #     ideal_A2 = reverse_max_criteria(ideal_A2, directions)
+    if 'max' in directions:
+        M = reverse_criteria(M, directions)
 
-    return A0, vec_ideal, A3, vec_anty_ideal, A1, ideal_A1, A2, ideal_A2, M, directions
+    return M
 
 
 if __name__ == "__main__":
     pref = np.array([1.2, 15, -5])
     pref_qwo = np.array([3.5, 42, -1])
-    A0, vec_ideal, A3, vec_anty_ideal, A1, idealny_A1, A2, idealny_A2, M, flagi = determine_sets(pref, pref_qwo)
-
-    print(f"Punkty najlepsze:\n{A0}\nWektor idealny:\t{vec_ideal}\n")
-    print(f"Punkty najgorsze:\n{A3}\nWektor antyidealny:\t{vec_anty_ideal}\n")
-    print(f"Punkty preferencji nieosiągalnych:\n{A1}\nWektor idealny z A1:\t{idealny_A1}\n")
-    print(f"Punkty statu quo:\n{A2}\nWektor nadir z A2:\t{idealny_A2}\n")
-    print(f"Pomiędzy A1 i A2:\t{M}")
+    D = pd.read_excel("dane.xlsx", sheet_name='Arkusz3', header=None).values
+    directions = ['min', 'min', 'max']
+    M = determine_sets(pref, pref_qwo, D, directions)
+    print(M)

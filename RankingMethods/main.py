@@ -239,25 +239,34 @@ class MenuScreen(Screen):
             return None
 
         criteria = [btn.text == "Max" for btn in self.criteria_buttons]
+        directions = [btn.text.lower() for btn in self.criteria_buttons]
 
         t1 = time.time()
 
         if algorithm == 0:
             reference = [[float(ref1.text), float(ref2.text)] for ref1, ref2 in zip(self.criteria_references1, self.criteria_references2)]
             weights = [float(w.text) for w in self.criteria_weights]
-            print(reference, weights)
-            rank = topsis(self.points, reference, weights)
+            rank = topsis(deepcopy(self.points), reference, weights)
+            self.rank_points = [p[0] for p in rank[:3]]
 
         elif algorithm == 1:
             points = np.array([list(self.points[i]) for i in range(len(self.points))])
-            rank = UTASTAR(points, criteria)
+            rank = UTASTAR(points, criteria)[:3]
+            self.rank_points = [self.points[idx] for idx in rank]
+
+        elif algorithm == 2:
+            points = np.array([list(self.points[i]) for i in range(len(self.points))])
+            pref = np.array([1, 1, 1])
+            pref_qwo = np.array([10, 10, 10])
+            rank = determine_sets(pref, pref_qwo, points, directions)[:3, :]
+            self.rank_points = [p for p in rank]
 
         t2 = time.time()
         print(f"Czas: {(t2 - t1) * 1000} [ms]")
-        print(rank)
+        print(self.rank_points)
 
     def render_animation(self):
-        plot_results(self.points, self.tops, np.array([]))
+        plot_results(self.points, self.rank_points)
 
     def write_to_file(self):
         parameters: List[Tuple[str, str]] = []

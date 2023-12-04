@@ -35,7 +35,7 @@ def calc_utilities_for_a(U):
 # Sortowanie użyteczności i przypisywanie wariantów
 def sort_a(utilities):
     usort = dict(sorted(utilities.items(), key=lambda item: item[1], reverse=True))
-    return np.array(usort.keys())
+    return np.array(list(usort.keys()))
 
 
 # Wywołanie powyższych funkcji jako użycie metody UTA (zwraca ranking)
