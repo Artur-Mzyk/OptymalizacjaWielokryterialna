@@ -1,0 +1,80 @@
+<MenuScreen>:
+    GridLayout:
+        id: main_layout
+        canvas:
+            Color:
+                rgba: 1, 1, 1, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        rows: 2
+        cols: 2
+        GridLayout:
+            id: movies_layout
+            canvas:
+                Color:
+                    rgba: 0, 0, 0, 1
+                Line:
+                    rectangle: self.x, self.y, self.width, self.height
+                    width: 2
+            rows: 2
+            cols: 3
+            padding: 10
+            size_hint_x: main_layout.height * 0.8
+            size_hint_y: main_layout.height * 0.5
+            Label:
+                text: "Gatunek"
+                color: "black"
+                size_hint_x: movies_layout.width * 0.2
+            Label:
+                text: "Liczba najlepiej ocenianych filmów"
+                color: "black"
+                size_hint_x: movies_layout.width * 0.2
+            Button:
+                text: "Pobierz"
+                on_press: root.get_top_movies()
+                size_hint_x: movies_layout.width * 0.6
+            TextInput:
+                id: genre
+                size_hint_x: movies_layout.width * 0.2
+            TextInput:
+                id: n_movies
+                size_hint_x: movies_layout.width * 0.2
+            Label:
+                id: top_movies_list
+                text: ""
+                color: "black"
+                size_hint_x: movies_layout.width * 0.6
+        GridLayout:
+            canvas:
+                Color:
+                    rgba: 0, 0, 0, 1
+                Line:
+                    rectangle: self.x, self.y, self.width, self.height
+                    width: 2
+            rows: 2
+            cols: 3
+            padding: 10
+            size_hint_y: main_layout.height * 0.5
+        GridLayout:
+            canvas:
+                Color:
+                    rgba: 0, 0, 0, 1
+                Line:
+                    rectangle: self.x, self.y, self.width, self.height
+                    width: 2
+            rows: 2
+            cols: 3
+            padding: 10
+            size_hint_y: main_layout.height * 0.5
+        GridLayout:
+            canvas:
+                Color:
+                    rgba: 0, 0, 0, 1
+                Line:
+                    rectangle: self.x, self.y, self.width, self.height
+                    width: 2
+            rows: 2
+            cols: 3
+            padding: 10
+            size_hint_y: main_layout.height * 0.5
