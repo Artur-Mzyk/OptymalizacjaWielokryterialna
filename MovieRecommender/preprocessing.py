@@ -1,47 +1,58 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 import json
 
 from imdb import IMDb, Cinemagoer, IMDbBase
 from imdb import Movie
 from bs4 import BeautifulSoup
 from typing import List, Dict
+from imdb.parser.http import IMDbHTTPAccessSystem
 
 
-def get_top_movies(genre: str, n_movies: int) -> Dict[str, str]:
+class Query:
+    def __init__(self) -> None:
 
-    # Stworzenie obiektu klasy IMDb
-    imdb = IMDb()
+        # Stworzenie obiektu klasy IMDb
+        self.imdb: IMDbHTTPAccessSystem = IMDb()
 
-    # Konkatenacja URL potrzebnego do pobrania danych
-    criteria = {'genres': genre, 'count': str(n_movies), 'sort': "num_votes,desc"}
-    params = '&'.join(['%s=%s' % (k, v) for k, v in criteria.items()])
-    url = imdb.urls['search_movie_advanced'] % params
+    def get_top_movies(self, genre: str, n_movies: int) -> List[Movie.Movie]:
 
-    # Pobranie danych
-    content = imdb._retrieve(url)
+        # Konkatenacja URL potrzebnego do pobrania danych
+        criteria = {'genres': genre, 'count': str(n_movies), 'sort': "num_votes,desc"}
+        params = '&'.join([f"{k}={v}" for k, v in criteria.items()])
+        url = self.imdb.urls['search_movie_advanced'] % params
 
-    # Parsowanie danych
-    soup = BeautifulSoup(content, 'html.parser')
-    response = json.loads(soup.find('script', {"id" : "__NEXT_DATA__"}).text)
-    movies: Dict[str, str] = {}
+        # Pobranie danych
+        print(f"[DOWNLOAD] From {url}")
+        content = self.imdb._retrieve(url)
 
-    for i in range(n_movies):
-        item = response['props']['pageProps']['searchResults']['titleResults']['titleListItems'][i]
-        movies[item['titleId'][2:]] = item['titleText']
+        # Parsowanie danych
+        soup = BeautifulSoup(content, 'html.parser')
+        response = json.loads(soup.find('script', {"id" : "__NEXT_DATA__"}).text)
+        items = response['props']['pageProps']['searchResults']['titleResults']['titleListItems']
+        movies: List[Movie.Movie] = [self.imdb.get_movie(item['titleId'][2:]) for item in items]
 
-    return movies
+        return movies
+
+    def get_genres(self) -> List[str]:
+        url: str = "https://www.imdb.com/feature/genre/"
+        print(f"[DOWNLOAD] From {url}")
+        content = self.imdb._retrieve(url)
+        soup = BeautifulSoup(content, 'html.parser')
+        response = json.loads(soup.find('script', {"id" : "__NEXT_DATA__"}).text)
+        genres = [genre["displayText"] for genre in response["props"]["pageProps"]["movieGenreList"]]
+
+        return genres
 
 
 if __name__ == '__main__':
-    ia = IMDb()
+    query = Query()
     genre = "fantasy"
-    n_movies = 8
-    movies = get_top_movies(genre, n_movies)
-    print(movies)
-    movies_list = [Movie.Movie(movieID=ia._get_real_movieID(mi), data=md, modFunct=ia._defModFunct,
-                               accessSystem=ia.accessSystem) for mi, md in movies.items()]
+    n_movies = 5
+
+    # TODO Dorobić obsługę obrony przed duplikowaniem się filmów
+    movies = query.get_top_movies(genre, n_movies)
+
+    for movie in movies:
+        print(movie)

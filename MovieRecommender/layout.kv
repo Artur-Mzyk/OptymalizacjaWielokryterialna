@@ -10,6 +10,27 @@
         rows: 2
         cols: 2
         GridLayout:
+            id: genres_layout
+            rows: 6
+            cols: 4
+            size_hint_x: main_layout.width * 0.5
+            size_hint_y: main_layout.height * 0.5
+            Label:
+                text: "Zaznacz ulubione gatunki"
+                color: "black"
+        GridLayout:
+            id: numbers_layout
+            rows: 1
+            cols: 2
+            size_hint_x: main_layout.width * 0.5
+            size_hint_y: main_layout.height * 0.5
+            Label:
+                text: "Wybierz liczbę najlepiej ocenianych filmów"
+                color: "black"
+            Label:
+                text: ""
+                color: "black"
+        GridLayout:
             id: movies_layout
             canvas:
                 Color:
@@ -20,53 +41,31 @@
             rows: 2
             cols: 3
             padding: 10
-            size_hint_x: main_layout.height * 0.8
+            size_hint_x: main_layout.width * 0.5
             size_hint_y: main_layout.height * 0.5
             Label:
-                text: "Gatunek"
+                text: "Rok produkcji"
                 color: "black"
-                size_hint_x: movies_layout.width * 0.2
+                size_hint_x: movies_layout.width * 0.5
             Label:
-                text: "Liczba najlepiej ocenianych filmów"
+                text: "Obsada"
                 color: "black"
-                size_hint_x: movies_layout.width * 0.2
+                size_hint_x: movies_layout.width * 0.5
             Button:
                 text: "Pobierz"
                 on_press: root.get_top_movies()
-                size_hint_x: movies_layout.width * 0.6
+                size_hint_x: movies_layout.width * 0.5
             TextInput:
-                id: genre
-                size_hint_x: movies_layout.width * 0.2
+                id: release_year
+                size_hint_x: movies_layout.width * 0.5
             TextInput:
-                id: n_movies
-                size_hint_x: movies_layout.width * 0.2
+                id: cast
+                size_hint_x: movies_layout.width * 0.5
             Label:
                 id: top_movies_list
                 text: ""
                 color: "black"
-                size_hint_x: movies_layout.width * 0.6
-        GridLayout:
-            canvas:
-                Color:
-                    rgba: 0, 0, 0, 1
-                Line:
-                    rectangle: self.x, self.y, self.width, self.height
-                    width: 2
-            rows: 2
-            cols: 3
-            padding: 10
-            size_hint_y: main_layout.height * 0.5
-        GridLayout:
-            canvas:
-                Color:
-                    rgba: 0, 0, 0, 1
-                Line:
-                    rectangle: self.x, self.y, self.width, self.height
-                    width: 2
-            rows: 2
-            cols: 3
-            padding: 10
-            size_hint_y: main_layout.height * 0.5
+                size_hint_x: movies_layout.width * 0.5
         GridLayout:
             canvas:
                 Color:
