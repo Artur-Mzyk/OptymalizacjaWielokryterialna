@@ -3,6 +3,7 @@
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 
 from preprocessing import Query
 
@@ -19,6 +20,11 @@ import time
 
 from typing import List, Tuple, Union, Optional, Dict
 from imdb import Movie
+
+from UTA import UTASTAR
+from TOPSIS import topsis
+from RSM import determine_sets
+from copy import deepcopy
 
 
 def construct_decision_matrix(movies: List[Movie.Movie], release_year: int, cast: str) -> pd.DataFrame:
@@ -54,6 +60,15 @@ class MenuScreen(Screen):
         self.genres: List[str] = self.query.get_genres()
         self.genres_buttons: List[CheckBox] = []
         self.numbers_widgets: List[Optional[Tuple[Label, TextInput]]] = [None for _ in range(len(self.genres))]
+        self.decision_matrix: Optional[np.array] = None
+
+        # TO REMOVE
+        self.not_dominated_points = []
+        self.criteria_references1: List[TextInput] = []
+        self.criteria_references2: List[TextInput] = []
+        self.criteria_weights: List[TextInput] = []
+        # TO REMOVE
+
         self.setup_ui()
 
     def setup_ui(self) -> None:
@@ -63,6 +78,12 @@ class MenuScreen(Screen):
             btn = ToggleButton(text=genre, on_press=lambda btn_, genre_=genre, idx=i: self.select(btn_, genre_, idx))
             box.add_widget(btn)
             self.genres_buttons.append(btn)
+
+        box = self.ids["algorithm_layout"]
+
+        for algorithm in ["TOPSIS", "UTA", "RSM"]:
+            btn = Button(text=algorithm, on_press=lambda btn_: self.solve(btn_))
+            box.add_widget(btn)
 
     def select(self, btn: ToggleButton, genre: str, idx: int) -> None:
         box = self.ids["numbers_layout"]
@@ -115,6 +136,38 @@ class MenuScreen(Screen):
 
         decision_matrix = construct_decision_matrix(movies, release_year, cast)
         self.ids["top_movies_list"].text = decision_matrix.to_string()
+        self.decision_matrix = decision_matrix.to_numpy()
+
+    def solve(self, btn: Button) -> None:
+        if self.decision_matrix is None:
+            return None
+
+        algorithm = btn.text
+        criteria = [True, True, False]
+        directions = ["max", "max", "min"]
+        t1 = time.time()
+
+        if algorithm == "TOPSIS":
+            reference = [[float(ref1.text), float(ref2.text)] for ref1, ref2 in zip(self.criteria_references1, self.criteria_references2)]
+            weights = [float(w.text) for w in self.criteria_weights]
+            rank = topsis(deepcopy(self.decision_matrix), reference, weights)
+            self.rank = [p[0] for p in rank[:3]]
+
+        elif algorithm == "UTA":
+            rank_indices = UTASTAR(self.decision_matrix, criteria)[:3]
+            self.rank = [self.decision_matrix[idx] for idx in rank_indices]
+
+        elif algorithm == "RSM":
+            pref = np.array([25, 10, 0])
+            pref_qwo = np.array([0, 4, 40])
+            self.rank = [p for p in determine_sets(pref, pref_qwo, self.decision_matrix, directions)[:3, :]]
+
+        t2 = time.time()
+        print(f"Czas: {(t2 - t1) * 1000} [ms]")
+        print(self.rank)
+
+    def display(self):
+        pass
 
 
 class MainApp(App):
