@@ -25,6 +25,10 @@ from UTA import UTASTAR
 from TOPSIS import topsis
 from RSM import determine_sets
 from copy import deepcopy
+from visualization import plot_results
+
+from kivy.graphics import Line, Color, Point
+from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 
 
 def construct_decision_matrix(movies: List[Movie.Movie], release_year: int, cast: str) -> pd.DataFrame:
@@ -60,14 +64,10 @@ class MenuScreen(Screen):
         self.genres: List[str] = self.query.get_genres()
         self.genres_buttons: List[CheckBox] = []
         self.numbers_widgets: List[Optional[Tuple[Label, TextInput]]] = [None for _ in range(len(self.genres))]
-        self.decision_matrix: Optional[np.array] = None
+        self.decision_matrix: Optional[np.ndarray] = None
+        self.rank: Optional[np.ndarray] = None
 
-        # TO REMOVE
-        self.not_dominated_points = []
-        self.criteria_references1: List[TextInput] = []
-        self.criteria_references2: List[TextInput] = []
-        self.criteria_weights: List[TextInput] = []
-        # TO REMOVE
+        # self.not_dominated_points = []
 
         self.setup_ui()
 
@@ -78,12 +78,6 @@ class MenuScreen(Screen):
             btn = ToggleButton(text=genre, on_press=lambda btn_, genre_=genre, idx=i: self.select(btn_, genre_, idx))
             box.add_widget(btn)
             self.genres_buttons.append(btn)
-
-        box = self.ids["algorithm_layout"]
-
-        for algorithm in ["TOPSIS", "UTA", "RSM"]:
-            btn = Button(text=algorithm, on_press=lambda btn_: self.solve(btn_))
-            box.add_widget(btn)
 
     def select(self, btn: ToggleButton, genre: str, idx: int) -> None:
         box = self.ids["numbers_layout"]
@@ -132,25 +126,48 @@ class MenuScreen(Screen):
         movies: List[Movie.Movie] = []
 
         for genre, n_movies in selected_genres:
+            self.ids["top_movies_list"].text = f"Downloading data for genre: {genre}"
             movies.extend(self.query.get_top_movies(genre, n_movies))
+
+        if not movies:
+            return None
 
         decision_matrix = construct_decision_matrix(movies, release_year, cast)
         self.ids["top_movies_list"].text = decision_matrix.to_string()
         self.decision_matrix = decision_matrix.to_numpy()
 
-    def solve(self, btn: Button) -> None:
+    def solve(self, algorithm: str) -> None:
         if self.decision_matrix is None:
             return None
 
-        algorithm = btn.text
         criteria = [True, True, False]
         directions = ["max", "max", "min"]
         t1 = time.time()
 
         if algorithm == "TOPSIS":
-            reference = [[float(ref1.text), float(ref2.text)] for ref1, ref2 in zip(self.criteria_references1, self.criteria_references2)]
-            weights = [float(w.text) for w in self.criteria_weights]
-            rank = topsis(deepcopy(self.decision_matrix), reference, weights)
+            try:
+                cast_ref1 = float(self.ids["cast_ref1"].text)
+                cast_ref2 = float(self.ids["cast_ref2"].text)
+                cast_weight = float(self.ids["cast_weight"].text)
+                rating_ref1 = float(self.ids["rating_ref1"].text)
+                rating_ref2 = float(self.ids["rating_ref2"].text)
+                rating_weight = float(self.ids["rating_weight"].text)
+                release_year_ref1 = float(self.ids["release_year_ref1"].text)
+                release_year_ref2 = float(self.ids["release_year_ref2"].text)
+                release_year_weight = float(self.ids["release_year_weight"].text)
+
+            except ValueError as e:
+                self.ids["top_movies_list"].text = str(e)
+
+                return None
+
+            reference = [[cast_ref1, cast_ref2], [rating_ref1, rating_ref2], [release_year_ref1, release_year_ref2]]
+            weights = [cast_weight, rating_weight, release_year_weight]
+            decision_matrix = [list(row) for row in self.decision_matrix]
+            print(decision_matrix)
+            print(reference)
+            print(weights)
+            rank = topsis(decision_matrix, reference, weights)
             self.rank = [p[0] for p in rank[:3]]
 
         elif algorithm == "UTA":
@@ -158,16 +175,39 @@ class MenuScreen(Screen):
             self.rank = [self.decision_matrix[idx] for idx in rank_indices]
 
         elif algorithm == "RSM":
-            pref = np.array([25, 10, 0])
-            pref_qwo = np.array([0, 4, 40])
+            try:
+                cast_ref1 = float(self.ids["cast_ref1"].text)
+                cast_ref2 = float(self.ids["cast_ref2"].text)
+                rating_ref1 = float(self.ids["rating_ref1"].text)
+                rating_ref2 = float(self.ids["rating_ref2"].text)
+                release_year_ref1 = float(self.ids["release_year_ref1"].text)
+                release_year_ref2 = float(self.ids["release_year_ref2"].text)
+
+            except ValueError as e:
+                self.ids["top_movies_list"].text = str(e)
+
+                return None
+
+            pref = np.array([cast_ref2, rating_ref2, release_year_ref2])
+            pref_qwo = np.array([cast_ref1, rating_ref1, release_year_ref1])
             self.rank = [p for p in determine_sets(pref, pref_qwo, self.decision_matrix, directions)[:3, :]]
 
         t2 = time.time()
-        print(f"Czas: {(t2 - t1) * 1000} [ms]")
+        self.ids["time"].text = f"Czas: {int((t2 - t1) * 1000)} [ms]"
         print(self.rank)
 
     def display(self):
-        pass
+        if self.rank is None:
+            return None
+
+        box = self.ids["plot_layout"]
+
+        for child in box.children:
+            box.remove_widget(child)
+
+        fig = plot_results([list(row) for row in self.decision_matrix], self.rank)
+        plot_widget = FigureCanvasKivyAgg(figure=fig)
+        box.add_widget(plot_widget)
 
 
 class MainApp(App):

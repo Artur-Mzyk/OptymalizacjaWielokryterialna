@@ -7,89 +7,214 @@
             Rectangle:
                 pos: self.pos
                 size: self.size
-        rows: 2
-        cols: 2
+        rows: 3
+        cols: 1
         GridLayout:
             id: genres_layout
-            rows: 4
-            cols: 6
-            size_hint_x: main_layout.width * 0.8
-            size_hint_y: main_layout.height * 0.5
+            canvas:
+                Color:
+                    rgba: 0, 0, 0, 1
+                Line:
+                    rectangle: self.x, self.y, self.width, self.height
+                    width: 2
+            padding: 10
+            rows: 3
+            cols: 8
+            size_hint_x: main_layout.width
+            size_hint_y: main_layout.height * 0.2
             Label:
                 text: "Zaznacz gatunki"
                 color: "black"
         GridLayout:
-            rows: 2
-            cols: 1
-            size_hint_x: main_layout.width * 0.2
+            id: algorithm_layout
+            canvas:
+                Color:
+                    rgba: 0, 0, 0, 1
+                Line:
+                    rectangle: self.x, self.y, self.width, self.height
+                    width: 2
+            padding: 10
+            rows: 1
+            cols: 3
+            size_hint_x: main_layout.width
+            size_hint_y: main_layout.height * 0.3
+            GridLayout:
+                canvas:
+                    Color:
+                        rgba: 0, 0, 0, 1
+                    Line:
+                        rectangle: self.x, self.y, self.width, self.height
+                        width: 2
+                padding: 10
+                rows: 2
+                cols: 1
+                size_hint_x: algorithm_layout.width * 0.2
+                size_hint_y: algorithm_layout.height
+                GridLayout:
+                    rows: 1
+                    cols: 1
+                    Label:
+                        text: "Wybierz liczbę najwyżej ocenianych filmów"
+                        color: "black"
+                GridLayout:
+                    id: numbers_layout
+                    rows: 0
+                    cols: 2
+            GridLayout:
+                id: movies_layout
+                canvas:
+                    Color:
+                        rgba: 0, 0, 0, 1
+                    Line:
+                        rectangle: self.x, self.y, self.width, self.height
+                        width: 2
+                padding: 10
+                rows: 2
+                cols: 3
+                size_hint_x: algorithm_layout.width * 0.5
+                size_hint_y: algorithm_layout.height
+                Label:
+                    text: "Rok produkcji"
+                    color: "black"
+                    size_hint_x: movies_layout.width * 0.2
+                Label:
+                    text: "Obsada"
+                    color: "black"
+                    size_hint_x: movies_layout.width * 0.2
+                Button:
+                    text: "Wyświetl listę filmów"
+                    on_press: root.get_top_movies()
+                    size_hint_x: movies_layout.width * 0.6
+                TextInput:
+                    id: release_year
+                    size_hint_x: movies_layout.width * 0.2
+                TextInput:
+                    id: cast
+                    size_hint_x: movies_layout.width * 0.2
+                Label:
+                    id: top_movies_list
+                    text: ""
+                    color: "black"
+                    size_hint_x: movies_layout.width * 0.6
+            GridLayout:
+                canvas:
+                    Color:
+                        rgba: 0, 0, 0, 1
+                    Line:
+                        rectangle: self.x, self.y, self.width, self.height
+                        width: 2
+                padding: 10
+                rows: 4
+                cols: 4
+                size_hint_x: algorithm_layout.width * 0.3
+                size_hint_y: algorithm_layout.height
+                Label:
+                    text: "Kryterium"
+                    color: "black"
+                Label:
+                    text: "Ref1"
+                    color: "black"
+                Label:
+                    text: "Ref2"
+                    color: "black"
+                Label:
+                    text: "Waga"
+                    color: "black"
+                Label:
+                    text: "Obsada"
+                    color: "black"
+                TextInput:
+                    id: cast_ref1
+                    text: "0"
+                TextInput:
+                    id: cast_ref2
+                    text: "25"
+                TextInput:
+                    id: cast_weight
+                    text: "0.1"
+                Label:
+                    text: "Ocena"
+                    color: "black"
+                TextInput:
+                    id: rating_ref1
+                    text: "4"
+                TextInput:
+                    id: rating_ref2
+                    text: "10"
+                TextInput:
+                    id: rating_weight
+                    text: "0.6"
+                Label:
+                    text: "Rok produkcji"
+                    color: "black"
+                TextInput:
+                    id: release_year_ref1
+                    text: "40"
+                TextInput:
+                    id: release_year_ref2
+                    text: "0"
+                TextInput:
+                    id: release_year_weight
+                    text: "0.3"
+        GridLayout:
+            id: results_layout
+            canvas:
+                Color:
+                    rgba: 0, 0, 0, 1
+                Line:
+                    rectangle: self.x, self.y, self.width, self.height
+                    width: 2
+            padding: 10
+            rows: 1
+            cols: 2
+            size_hint_x: main_layout.width
             size_hint_y: main_layout.height * 0.5
             GridLayout:
+                canvas:
+                    Color:
+                        rgba: 0, 0, 0, 1
+                    Line:
+                        rectangle: self.x, self.y, self.width, self.height
+                        width: 2
+                padding: 10
+                rows: 2
+                cols: 1
+                size_hint_x: results_layout.width * 0.4
+                size_hint_y: results_layout.height
+                GridLayout:
+                    rows: 1
+                    cols: 4
+                    Button:
+                        text: "TOPSIS"
+                        on_press: root.solve("TOPSIS")
+                    Button:
+                        text: "UTA"
+                        on_press: root.solve("UTA")
+                    Button:
+                        text: "RSM"
+                        on_press: root.solve("RSM")
+                    Label
+                        id: time
+                        text: ""
+                        color: "black"
+                GridLayout:
+                    rows: 1
+                    cols: 2
+                    Button:
+                        text: "Wyświetl"
+                        on_press: root.display()
+                    Button:
+                        text: "Zapisz"
+            GridLayout:
+                id: plot_layout
+                canvas:
+                    Color:
+                        rgba: 0, 0, 0, 1
+                    Line:
+                        rectangle: self.x, self.y, self.width, self.height
+                        width: 2
+                padding: 10
                 rows: 1
                 cols: 1
-                Label:
-                    text: "Wybierz liczbę najwyżej ocenianych filmów"
-                    color: "black"
-            GridLayout:
-                id: numbers_layout
-                rows: 0
-                cols: 2
-        GridLayout:
-            id: movies_layout
-            canvas:
-                Color:
-                    rgba: 0, 0, 0, 1
-                Line:
-                    rectangle: self.x, self.y, self.width, self.height
-                    width: 2
-            rows: 2
-            cols: 3
-            padding: 10
-            size_hint_x: main_layout.width * 0.8
-            size_hint_y: main_layout.height * 0.5
-            Label:
-                text: "Rok produkcji"
-                color: "black"
-                size_hint_x: movies_layout.width * 0.2
-            Label:
-                text: "Obsada"
-                color: "black"
-                size_hint_x: movies_layout.width * 0.2
-            Button:
-                text: "Wyświetl listę filmów"
-                on_press: root.get_top_movies()
-                size_hint_x: movies_layout.width * 0.6
-            TextInput:
-                id: release_year
-                size_hint_x: movies_layout.width * 0.2
-            TextInput:
-                id: cast
-                size_hint_x: movies_layout.width * 0.2
-            Label:
-                id: top_movies_list
-                text: ""
-                color: "black"
-                size_hint_x: movies_layout.width * 0.6
-        GridLayout:
-            canvas:
-                Color:
-                    rgba: 0, 0, 0, 1
-                Line:
-                    rectangle: self.x, self.y, self.width, self.height
-                    width: 2
-            rows: 2
-            cols: 1
-            padding: 10
-            size_hint_x: main_layout.width * 0.2
-            size_hint_y: main_layout.height * 0.5
-            GridLayout:
-                id: algorithm_layout
-                rows: 1
-                cols: 3
-            GridLayout:
-                rows: 1
-                cols: 2
-                Button:
-                    text: "Wyświetl"
-                    on_press: root.display()
-                Button:
-                    text: "Zapisz"
+                size_hint_x: results_layout.width * 0.6
+                size_hint_y: results_layout.height
