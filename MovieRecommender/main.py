@@ -161,14 +161,15 @@ class MenuScreen(Screen):
 
                 return None
 
-            reference = [[cast_ref1, cast_ref2], [rating_ref1, rating_ref2], [release_year_ref1, release_year_ref2]]
+            # reference = [[cast_ref1, cast_ref2], [rating_ref1, rating_ref2], [release_year_ref1, release_year_ref2]]
             weights = [cast_weight, rating_weight, release_year_weight]
             decision_matrix = [list(row) for row in self.decision_matrix]
             print(decision_matrix)
-            print(reference)
+            # print(reference)
             print(weights)
-            rank = topsis(decision_matrix, reference, weights)
-            self.rank = [p[0] for p in rank[:3]]
+            rank_tops = topsis(decision_matrix, directions, weights)
+            rank_indices = [r[0] for r in rank_tops]
+            self.rank = [self.decision_matrix[idx] for idx in rank_indices]
 
         elif algorithm == "UTA":
             rank_indices = UTASTAR(self.decision_matrix, criteria)[:3]
@@ -195,6 +196,7 @@ class MenuScreen(Screen):
         t2 = time.time()
         self.ids["time"].text = f"Czas: {int((t2 - t1) * 1000)} [ms]"
         print(self.rank)
+        print(self.ids["top_movies_list"].text)
 
     def display(self):
         if self.rank is None:

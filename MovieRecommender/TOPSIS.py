@@ -33,12 +33,12 @@ def alg2(X):
         Y = X[i]
         j = i + 1
         while j < len(X):
-            min_val = get_minimum(Y, X[j])
-            if min_val == Y:
+            min_val = get_minimum(Y[0], X[j][0])
+            if min_val == Y[0]:
                 dominated_points.append(X[j])
                 X.remove(X[j])
                 was_removed = True
-            elif min_val == X[j]:
+            elif min_val == X[j][0]:
                 Y_temp = Y
                 Y = X[j]
                 dominated_points.append(Y_temp)
@@ -71,22 +71,26 @@ def point_between_references(point: List[float], reference_points: [List[List[fl
     return True
 
 
-def topsis(alternatives: List[List[float]], reference_points: List[List[float]], weights: List[float]) -> List[Tuple[List[float], int]]:
+def topsis(alternatives: List[List[float]], directions: List[str], weights: List[float]) -> List[Tuple[List[float], int]]:
     """
     Topsis method
-    :param reference_points: list of reference points, alternatives should be between them
+    :param directions: directions of optimization
     :param alternatives: alternatives matrix (rows - alternatives, cols - criteria)
     :param weights: weights vector
     :return: Ranked alternatives (points and topsis score)
     """
-    alternatives, _ = alg2(alternatives)
+    alternatives_new = []
+    for i, alt in enumerate(alternatives):
+        alt = [el if directions[i] == 'min' else 1 /(1 + el) for i, el in enumerate(alt)]
+        alternatives_new.append((alt, i))
+    alternatives, _ = alg2(alternatives_new)
+
     # alternatives_number = len(alternatives)
     criteria_number = len(alternatives[0])
     # alternatives_OK_id = [i if point_between_references(alternatives[i], reference_points) else None for i in range(alternatives_number)]
     evaluation_list = []
     for alt in alternatives:
-        if point_between_references(alt, reference_points):
-            evaluation_list.append(alt)
+        evaluation_list.append(alt[0])
     alternatives_number = len(evaluation_list)
     evaluation_matrix = np.array(evaluation_list)
     normalized_evaluation_matrix = evaluation_matrix / np.sqrt(np.sum(np.power(evaluation_matrix, 2)))
@@ -96,14 +100,13 @@ def topsis(alternatives: List[List[float]], reference_points: List[List[float]],
     distance_best = np.array([np.sqrt(np.sum(np.power(scaled_matrix[i] - ideal_point, 2))) for i in range(alternatives_number)])
     distance_worst = np.array([np.sqrt(np.sum(np.power(scaled_matrix[i] - antyideal_point, 2))) for i in range(alternatives_number)])
     topsis_score = distance_worst / (distance_best + distance_worst)
-    result = [(evaluation_list[i], topsis_score[i]) for i in range(alternatives_number)]
+    result = [(alternatives[i][1], topsis_score[i]) for i in range(alternatives_number)]
     result.sort(key=lambda x: x[1], reverse=True)
     return result
-    # dodać listę z krotkami id, topsis i uszeregować od największego topsis do najmniejszego
 
 if __name__ == '__main__':
     alternatives = [[2, 2], [3, 1], [6, 7], [1, 3]]
-    reference = [[0, 0], [7, 6]]
+    reference = ['min', 'min']
     weights = [0.6, 0.4]
     tops = topsis(alternatives, reference, weights)
     print(tops)
