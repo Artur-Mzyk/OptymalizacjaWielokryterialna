@@ -43,6 +43,9 @@ def construct_decision_matrix(movies: List[Movie.Movie], release_year: int, cast
     data: Dict[str, List[Union[int, float, str]]] = {"title": [], "present_cast": [], "rating": [], "release_year_diff": []}
 
     for movie in movies:
+        if movie["title"] in data["title"]:
+            continue
+
         data["title"].append(movie["title"])
         data["present_cast"].append(sum([1 for person in movie["cast"] if person["name"] in cast]))
         data["rating"].append(movie["rating"])
@@ -65,10 +68,8 @@ class MenuScreen(Screen):
         self.genres_buttons: List[CheckBox] = []
         self.numbers_widgets: List[Optional[Tuple[Label, TextInput]]] = [None for _ in range(len(self.genres))]
         self.decision_matrix: Optional[np.ndarray] = None
+        self.decision_matrix_df: Optional[pd.DataFrame] = None
         self.rank: Optional[np.ndarray] = None
-
-        # self.not_dominated_points = []
-
         self.setup_ui()
 
     def setup_ui(self) -> None:
@@ -104,7 +105,7 @@ class MenuScreen(Screen):
             release_year = int(self.ids["release_year"].text)
 
         except ValueError as e:
-            self.ids["top_movies_list"].text = str(e)
+            self.ids["exception_layout"].text = str(e)
 
             return None
 
@@ -118,7 +119,7 @@ class MenuScreen(Screen):
                 selected_genres.append((genre, n_movies))
 
             except ValueError as e:
-                self.ids["top_movies_list"].text = str(e)
+                self.ids["exception_layout"].text = str(e)
 
                 return None
 
@@ -126,15 +127,14 @@ class MenuScreen(Screen):
         movies: List[Movie.Movie] = []
 
         for genre, n_movies in selected_genres:
-            self.ids["top_movies_list"].text = f"Downloading data for genre: {genre}"
             movies.extend(self.query.get_top_movies(genre, n_movies))
 
         if not movies:
             return None
 
-        decision_matrix = construct_decision_matrix(movies, release_year, cast)
-        self.ids["top_movies_list"].text = decision_matrix.to_string()
-        self.decision_matrix = decision_matrix.to_numpy()
+        self.decision_matrix_df = construct_decision_matrix(movies, release_year, cast)
+        self.decision_matrix = self.decision_matrix_df.to_numpy()
+        self.ids["exception_layout"].text = "Downloaded"
 
     def solve(self, algorithm: str) -> None:
         if self.decision_matrix is None:
@@ -144,29 +144,19 @@ class MenuScreen(Screen):
         directions = ["max", "max", "min"]
         t1 = time.time()
 
+        try:
+            cast_weight = float(self.ids["cast_weight"].text)
+            rating_weight = float(self.ids["rating_weight"].text)
+            release_year_weight = float(self.ids["release_year_weight"].text)
+
+        except ValueError as e:
+            self.ids["exception_layout"].text = str(e)
+
+            return None
+
         if algorithm == "TOPSIS":
-            try:
-                cast_ref1 = float(self.ids["cast_ref1"].text)
-                cast_ref2 = float(self.ids["cast_ref2"].text)
-                cast_weight = float(self.ids["cast_weight"].text)
-                rating_ref1 = float(self.ids["rating_ref1"].text)
-                rating_ref2 = float(self.ids["rating_ref2"].text)
-                rating_weight = float(self.ids["rating_weight"].text)
-                release_year_ref1 = float(self.ids["release_year_ref1"].text)
-                release_year_ref2 = float(self.ids["release_year_ref2"].text)
-                release_year_weight = float(self.ids["release_year_weight"].text)
-
-            except ValueError as e:
-                self.ids["top_movies_list"].text = str(e)
-
-                return None
-
-            # reference = [[cast_ref1, cast_ref2], [rating_ref1, rating_ref2], [release_year_ref1, release_year_ref2]]
             weights = [cast_weight, rating_weight, release_year_weight]
             decision_matrix = [list(row) for row in self.decision_matrix]
-            print(decision_matrix)
-            # print(reference)
-            print(weights)
             rank_tops = topsis(decision_matrix, directions, weights)
             rank_indices = [r[0] for r in rank_tops]
             self.rank = [self.decision_matrix[idx] for idx in rank_indices]
@@ -176,27 +166,20 @@ class MenuScreen(Screen):
             self.rank = [self.decision_matrix[idx] for idx in rank_indices]
 
         elif algorithm == "RSM":
-            try:
-                cast_ref1 = float(self.ids["cast_ref1"].text)
-                cast_ref2 = float(self.ids["cast_ref2"].text)
-                rating_ref1 = float(self.ids["rating_ref1"].text)
-                rating_ref2 = float(self.ids["rating_ref2"].text)
-                release_year_ref1 = float(self.ids["release_year_ref1"].text)
-                release_year_ref2 = float(self.ids["release_year_ref2"].text)
-
-            except ValueError as e:
-                self.ids["top_movies_list"].text = str(e)
-
-                return None
-
-            pref = np.array([cast_ref2, rating_ref2, release_year_ref2])
-            pref_qwo = np.array([cast_ref1, rating_ref1, release_year_ref1])
+            pref = np.array([25, 10, 0])
+            pref_qwo = np.array([0, 4, 40])
             self.rank = [p for p in determine_sets(pref, pref_qwo, self.decision_matrix, directions)[:3, :]]
 
         t2 = time.time()
         self.ids["time"].text = f"Czas: {int((t2 - t1) * 1000)} [ms]"
-        print(self.rank)
-        print(self.ids["top_movies_list"].text)
+        rank_places: List[str] = []
+
+        for i, alternative in enumerate(self.rank):
+            for title, row in self.decision_matrix_df.iterrows():
+                if row["present_cast"] == alternative[0] and row["rating"] == alternative[1] and row["release_year_diff"] == alternative[2]:
+                    rank_places.append(f"{i + 1}. {title}")
+
+        self.ids["rank"].text = "\n".join(rank_places)
 
     def display(self):
         if self.rank is None:

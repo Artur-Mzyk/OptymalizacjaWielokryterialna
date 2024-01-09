@@ -8,6 +8,7 @@ from imdb import Movie
 from bs4 import BeautifulSoup
 from typing import List, Dict
 from imdb.parser.http import IMDbHTTPAccessSystem
+import time
 
 
 class Query:
@@ -49,10 +50,38 @@ class Query:
 if __name__ == '__main__':
     query = Query()
     genre = "fantasy"
-    n_movies = 5
+    n_movies = 100
 
-    # TODO Dorobić obsługę obrony przed duplikowaniem się filmów
-    movies = query.get_top_movies(genre, n_movies)
+    # movies = query.get_top_movies(genre, n_movies)
 
-    for movie in movies:
-        print(movie)
+    # for movie in movies:
+    #     print(movie)
+
+
+    t1 = time.time()
+    imdb: IMDbHTTPAccessSystem = IMDb()
+
+    criteria = {'genres': genre, 'count': str(n_movies), 'sort': "num_votes,desc"}
+    params = '&'.join([f"{k}={v}" for k, v in criteria.items()])
+    url = imdb.urls['search_movie_advanced'] % params
+
+    # Pobranie danych
+    print(f"[DOWNLOAD] From {url}")
+    content = imdb._retrieve(url)
+
+    # Parsowanie danych
+    soup = BeautifulSoup(content, 'html.parser')
+    response = json.loads(soup.find('script', {"id" : "__NEXT_DATA__"}).text)
+    items = response['props']['pageProps']['searchResults']['titleResults']['titleListItems']
+
+    for item in items:
+        movie = imdb.get_movie(item['titleId'][2:])
+        t2 = time.time()
+        print(f"Czas: {int((t2 - t1) * 1000)} [ms]")
+
+    # movies: List[Movie.Movie] = [imdb.get_movie(item['titleId'][2:]) for item in items]
+    # ids = [item['titleId'][2:] for item in items]
+    # movies: List[Movie.Movie] = [imdb.search_movie(item['titleText'])[0] for item in items]
+
+    # t2 = time.time()
+    # print(f"Czas: {int((t2 - t1) * 1000)} [ms]")

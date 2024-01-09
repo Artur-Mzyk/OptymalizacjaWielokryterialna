@@ -13,7 +13,7 @@ def plot_results(all_points, rank_points) -> None:
     if len(all_points[0]) == 3:
         x_all, y_all, z_all = zip(*all_points)
         ax = fig.add_subplot(111, projection='3d')
-        ax.scatter(x_all, y_all, z_all, marker ="*", label="Zbiór punktów")
+        ax.scatter(x_all, y_all, z_all, marker ="*", label="Zbiór alternatyw")
 
         if len(rank_points) >= 1:
             rank1 = rank_points[0]
@@ -27,12 +27,12 @@ def plot_results(all_points, rank_points) -> None:
             rank3 = rank_points[2]
             ax.scatter([rank3[0]], [rank3[1]], [rank3[2]], c="black", marker ="o", label="Ranking 3")
 
-        ax.set_zlabel('Kryterium 3')
+        ax.set_zlabel('Rok produkcji')
 
     elif len(all_points[0]) == 2:
         x_all, y_all = zip(*all_points)
         ax = fig.add_subplot(111)
-        ax.scatter(x_all, y_all, c="blue", marker ="*", label="Zbiór punktów")
+        ax.scatter(x_all, y_all, c="blue", marker ="*", label="Zbiór alternatyw")
 
         if len(rank_points) >= 1:
             rank1 = rank_points[0]
@@ -49,9 +49,8 @@ def plot_results(all_points, rank_points) -> None:
     else:
         return None
 
-    ax.set_xlabel('Kryterium 1')
-    ax.set_ylabel('Kryterium 2')
+    ax.set_xlabel('Obsada')
+    ax.set_ylabel('Ocena')
     plt.legend()
-    plt.title('Alternatywy wraz z rankingiem')
 
     return fig

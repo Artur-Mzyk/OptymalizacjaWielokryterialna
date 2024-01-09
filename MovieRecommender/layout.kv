@@ -92,7 +92,7 @@
                     id: cast
                     size_hint_x: movies_layout.width * 0.2
                 Label:
-                    id: top_movies_list
+                    id: exception_layout
                     text: ""
                     color: "black"
                     size_hint_x: movies_layout.width * 0.6
@@ -105,17 +105,11 @@
                         width: 2
                 padding: 10
                 rows: 4
-                cols: 4
+                cols: 2
                 size_hint_x: algorithm_layout.width * 0.3
                 size_hint_y: algorithm_layout.height
                 Label:
                     text: "Kryterium"
-                    color: "black"
-                Label:
-                    text: "Ref1"
-                    color: "black"
-                Label:
-                    text: "Ref2"
                     color: "black"
                 Label:
                     text: "Waga"
@@ -124,35 +118,17 @@
                     text: "Obsada"
                     color: "black"
                 TextInput:
-                    id: cast_ref1
-                    text: "0"
-                TextInput:
-                    id: cast_ref2
-                    text: "25"
-                TextInput:
                     id: cast_weight
                     text: "0.1"
                 Label:
                     text: "Ocena"
                     color: "black"
                 TextInput:
-                    id: rating_ref1
-                    text: "4"
-                TextInput:
-                    id: rating_ref2
-                    text: "10"
-                TextInput:
                     id: rating_weight
                     text: "0.6"
                 Label:
                     text: "Rok produkcji"
                     color: "black"
-                TextInput:
-                    id: release_year_ref1
-                    text: "40"
-                TextInput:
-                    id: release_year_ref2
-                    text: "0"
                 TextInput:
                     id: release_year_weight
                     text: "0.3"
@@ -166,7 +142,7 @@
                     width: 2
             padding: 10
             rows: 1
-            cols: 2
+            cols: 3
             size_hint_x: main_layout.width
             size_hint_y: main_layout.height * 0.5
             GridLayout:
@@ -179,11 +155,11 @@
                 padding: 10
                 rows: 2
                 cols: 1
-                size_hint_x: results_layout.width * 0.4
+                size_hint_x: results_layout.width * 0.3
                 size_hint_y: results_layout.height
                 GridLayout:
                     rows: 1
-                    cols: 4
+                    cols: 3
                     Button:
                         text: "TOPSIS"
                         on_press: root.solve("TOPSIS")
@@ -193,18 +169,16 @@
                     Button:
                         text: "RSM"
                         on_press: root.solve("RSM")
-                    Label
-                        id: time
-                        text: ""
-                        color: "black"
                 GridLayout:
                     rows: 1
                     cols: 2
                     Button:
                         text: "Wyświetl"
                         on_press: root.display()
-                    Button:
-                        text: "Zapisz"
+                    Label:
+                        id: time
+                        text: ""
+                        color: "black"
             GridLayout:
                 id: plot_layout
                 canvas:
@@ -216,5 +190,22 @@
                 padding: 10
                 rows: 1
                 cols: 1
-                size_hint_x: results_layout.width * 0.6
+                size_hint_x: results_layout.width * 0.4
                 size_hint_y: results_layout.height
+            GridLayout:
+                id: rank_layout
+                canvas:
+                    Color:
+                        rgba: 0, 0, 0, 1
+                    Line:
+                        rectangle: self.x, self.y, self.width, self.height
+                        width: 2
+                padding: 10
+                rows: 1
+                cols: 1
+                size_hint_x: results_layout.width * 0.3
+                size_hint_y: results_layout.height
+                Label:
+                    id: rank
+                    text: ""
+                    color: "black"
