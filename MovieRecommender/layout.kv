@@ -70,9 +70,13 @@
                         width: 2
                 padding: 10
                 rows: 2
-                cols: 3
+                cols: 4
                 size_hint_x: algorithm_layout.width * 0.5
                 size_hint_y: algorithm_layout.height
+                Label:
+                    text: "Autor"
+                    color: "black"
+                    size_hint_x: movies_layout.width * 0.2
                 Label:
                     text: "Rok produkcji"
                     color: "black"
@@ -82,9 +86,12 @@
                     color: "black"
                     size_hint_x: movies_layout.width * 0.2
                 Button:
-                    text: "Wyświetl listę filmów"
+                    text: "Pobierz listę filmów"
                     on_press: root.get_top_movies()
-                    size_hint_x: movies_layout.width * 0.6
+                    size_hint_x: movies_layout.width * 0.4
+                TextInput:
+                    id: writer
+                    size_hint_x: movies_layout.width * 0.2
                 TextInput:
                     id: release_year
                     size_hint_x: movies_layout.width * 0.2
@@ -95,7 +102,7 @@
                     id: exception_layout
                     text: ""
                     color: "black"
-                    size_hint_x: movies_layout.width * 0.6
+                    size_hint_x: movies_layout.width * 0.4
             GridLayout:
                 canvas:
                     Color:
@@ -104,7 +111,7 @@
                         rectangle: self.x, self.y, self.width, self.height
                         width: 2
                 padding: 10
-                rows: 4
+                rows: 7
                 cols: 2
                 size_hint_x: algorithm_layout.width * 0.3
                 size_hint_y: algorithm_layout.height
@@ -115,23 +122,41 @@
                     text: "Waga"
                     color: "black"
                 Label:
+                    text: "Autor"
+                    color: "black"
+                TextInput:
+                    id: writer_weight
+                    text: "0.1"
+                Label:
                     text: "Obsada"
                     color: "black"
                 TextInput:
                     id: cast_weight
                     text: "0.1"
                 Label:
+                    text: "Popularność obsady"
+                    color: "black"
+                TextInput:
+                    id: cast_popularity_weight
+                    text: "0.2"
+                Label:
                     text: "Ocena"
                     color: "black"
                 TextInput:
                     id: rating_weight
-                    text: "0.6"
+                    text: "0.3"
                 Label:
                     text: "Rok produkcji"
                     color: "black"
                 TextInput:
                     id: release_year_weight
-                    text: "0.3"
+                    text: "0.2"
+                Label:
+                    text: "Efekty specjalne"
+                    color: "black"
+                TextInput:
+                    id: special_effects_weight
+                    text: "0.1"
         GridLayout:
             id: results_layout
             canvas:

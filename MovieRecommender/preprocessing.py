@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 from typing import List, Dict
 from imdb.parser.http import IMDbHTTPAccessSystem
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 
 class Query:
@@ -32,7 +33,7 @@ class Query:
         soup = BeautifulSoup(content, 'html.parser')
         response = json.loads(soup.find('script', {"id" : "__NEXT_DATA__"}).text)
         items = response['props']['pageProps']['searchResults']['titleResults']['titleListItems']
-        movies: List[Movie.Movie] = [self.imdb.get_movie(item['titleId'][2:]) for item in items]
+        movies: List[Movie.Movie] = [self.imdb.get_movie(item['titleId'][2:], info=["main"]) for item in items]
 
         return movies
 
@@ -46,17 +47,25 @@ class Query:
 
         return genres
 
+    def get_cast_popularity(self, code: str) -> int:
+        filmography = self.imdb.get_person_filmography(code)['data']['filmography']
+
+        if "actor" in filmography:
+            return len(filmography["actor"])
+
+        else:
+            return 0
+
 
 if __name__ == '__main__':
     query = Query()
     genre = "fantasy"
-    n_movies = 100
+    n_movies = 10
 
     # movies = query.get_top_movies(genre, n_movies)
 
     # for movie in movies:
     #     print(movie)
-
 
     t1 = time.time()
     imdb: IMDbHTTPAccessSystem = IMDb()
@@ -75,13 +84,6 @@ if __name__ == '__main__':
     items = response['props']['pageProps']['searchResults']['titleResults']['titleListItems']
 
     for item in items:
-        movie = imdb.get_movie(item['titleId'][2:])
+        # movie = imdb.get_movie(item['titleId'][2:], info=["main"])
         t2 = time.time()
         print(f"Czas: {int((t2 - t1) * 1000)} [ms]")
-
-    # movies: List[Movie.Movie] = [imdb.get_movie(item['titleId'][2:]) for item in items]
-    # ids = [item['titleId'][2:] for item in items]
-    # movies: List[Movie.Movie] = [imdb.search_movie(item['titleText'])[0] for item in items]
-
-    # t2 = time.time()
-    # print(f"Czas: {int((t2 - t1) * 1000)} [ms]")
