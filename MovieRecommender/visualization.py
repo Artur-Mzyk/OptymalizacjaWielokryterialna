@@ -46,11 +46,53 @@ def plot_results(all_points, rank_points) -> None:
             rank3 = rank_points[2]
             ax.scatter([rank3[0]], [rank3[1]], c="black", marker ="o", label="Ranking 3")
 
-    else:
-        return None
+    elif len(all_points[0]) == 6:
+        x1_all, x2_all, x3_all, x4_all, x5_all, x6_all = zip(*all_points)
+        n = len(x1_all)
+        indx_lst = [i + 1 for i in range(n)]
+        rank1 = rank_points[0]
+        rank1 = rank1.tolist()
+        rank1_indx = all_points.index(rank1) + 1
 
-    ax.set_xlabel('Obsada')
-    ax.set_ylabel('Ocena')
-    plt.legend()
+        rank1_lst = [rank1[0] for _ in range(n)]
+        ax = fig.add_subplot(231)
+        ax.scatter(indx_lst, x1_all, c="blue", marker="*")
+        ax.scatter(rank1_indx, rank1[0], c="red", marker="o")
+        ax.set_title("Autor")
+
+        rank2_lst = [rank1[1] for _ in range(n)]
+        ax = fig.add_subplot(232)
+        ax.scatter(indx_lst, x2_all, c="blue", marker="*")
+        ax.scatter(rank1_indx, rank1[1], c="red", marker="o")
+        ax.set_title("Obsada")
+
+        rank3_lst = [rank1[2] for _ in range(n)]
+        ax = fig.add_subplot(233)
+        ax.scatter(indx_lst, x3_all, c="blue", marker="*")
+        ax.scatter(rank1_indx, rank1[2], c="red", marker="o")
+        ax.set_title("Popularnosc obsady")
+
+        rank4_lst = [rank1[3] for _ in range(n)]
+        ax = fig.add_subplot(234)
+        ax.scatter(indx_lst, x4_all, c="blue", marker="*")
+        ax.scatter(rank1_indx, rank1[3], c="red", marker="o")
+        ax.set_title("Ocena")
+
+        rank5_lst = [rank1[4] for _ in range(n)]
+        ax = fig.add_subplot(235)
+        ax.scatter(indx_lst, x5_all, c="blue", marker="*")
+        ax.scatter(rank1_indx, rank1[4], c="red", marker="o")
+        ax.set_title("Rok produkcji")
+
+        rank6_lst = [rank1[5] for _ in range(n)]
+        ax = fig.add_subplot(236)
+        ax.scatter(indx_lst, x6_all, c="blue", marker="*")
+        ax.scatter(rank1_indx, rank1[5], c="red", marker="o")
+        ax.set_title("Efekty specjalne")
+
+
+    # ax.set_xlabel('Obsada')
+    # ax.set_ylabel('Ocena')
+    # plt.legend()
 
     return fig
