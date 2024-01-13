@@ -57,7 +57,7 @@ def construct_decision_matrix(movies: List[Movie.Movie], cast_popularity: List[i
         data["cast_popularity"].append(cast_popularity[i])
         data["rating"].append(movie["rating"])
         data["release_year_diff"].append(abs(movie["year"] - release_year))
-        data["special_effects"].append(len(movie["special effects"]))
+        data["special_effects"].append(len(movie["special effects"]) if "special effects" in movie.keys() else 0)
 
     decision_matrix = pd.DataFrame(data)
     decision_matrix.set_index("title", inplace=True)
@@ -145,7 +145,7 @@ class MenuScreen(Screen):
         self.decision_matrix_df = construct_decision_matrix(movies, cast_popularity, writer, release_year, cast)
         self.decision_matrix = self.decision_matrix_df.to_numpy()
         self.ids["exception_layout"].text = "Downloaded"
-        print(self.decision_matrix)
+        print(self.decision_matrix_df)
 
     def solve(self, algorithm: str) -> None:
         if self.decision_matrix is None:
@@ -171,19 +171,19 @@ class MenuScreen(Screen):
         if algorithm == "TOPSIS":
             weights = [writer_weight, cast_weight, cast_popularity_weight, rating_weight, release_year_weight,
                        special_effects_weight]
-            decision_matrix = [list(row) for row in self.decision_matrix]
+            decision_matrix = [list(row) for row in deepcopy(self.decision_matrix)]
             rank_tops = topsis(decision_matrix, directions, weights)
             rank_indices = [r[0] for r in rank_tops]
             self.rank = [self.decision_matrix[idx] for idx in rank_indices]
 
         elif algorithm == "UTA":
-            rank_indices = UTASTAR(self.decision_matrix, criteria)[:3]
+            rank_indices = UTASTAR(deepcopy(self.decision_matrix), criteria)[:3]
             self.rank = [self.decision_matrix[idx] for idx in rank_indices]
 
         elif algorithm == "RSM":
             pref = np.array([1, 25, 20, 10, 0, 15])
             pref_qwo = np.array([0, 0, 0, 4, 40, 0])
-            self.rank = [p for p in determine_sets(pref, pref_qwo, self.decision_matrix, directions)[:3, :]]
+            self.rank = [p for p in determine_sets(pref, pref_qwo, deepcopy(self.decision_matrix), directions)[:3, :]]
 
         t2 = time.time()
         self.ids["time"].text = f"Czas: {int((t2 - t1) * 1000)} [ms]"
