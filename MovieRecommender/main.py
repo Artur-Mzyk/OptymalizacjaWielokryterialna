@@ -158,7 +158,7 @@ class MenuScreen(Screen):
         try:
             writer_weight = float(self.ids["writer_weight"].text)
             cast_weight = float(self.ids["cast_weight"].text)
-            cast_popularity_weight = float(self.ids["cast_weight"].text)
+            cast_popularity_weight = float(self.ids["cast_popularity_weight"].text)
             rating_weight = float(self.ids["rating_weight"].text)
             release_year_weight = float(self.ids["release_year_weight"].text)
             special_effects_weight = float(self.ids["special_effects_weight"].text)
